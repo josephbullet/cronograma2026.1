@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma M6 - UFPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Estados das linhas */
+        .status-doing { background-color: #fffbeb; border-color: #fde68a; }
+        .status-done { background-color: #f0fdf4; border-color: #bbf7d0; opacity: 0.8; }
+        
+        .text-done { text-decoration: line-through; color: #94a3b8; }
+        .sticky-header { position: sticky; top: 0; z-index: 50; }
+        
+        /* Esconder scrollbar mas manter funcionalidade */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-12 text-slate-900">
+
+    <div class="max-w-3xl mx-auto px-4 pt-8">
+        
+        <!-- HEADER & PROGRESS -->
+        <header class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+            <div class="bg-slate-900 p-6 text-white text-center">
+                <h1 class="text-2xl font-extrabold tracking-tight">M6 UFPE - Turma 155</h1>
+                <p class="text-slate-400 text-sm mt-1">Checklist de Teóricas • Osler Sync</p>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-end mb-3">
+                    <div>
+                        <span id="progress-percent" class="text-4xl font-black text-blue-600">0%</span>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Geral Concluído</p>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="flex items-center justify-end gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                            <i data-lucide="clock" class="w-3 h-3"></i> <span id="doing-count">0</span> Fazendo
+                        </div>
+                        <div class="flex items-center justify-end gap-2 text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded-md border border-green-100">
+                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> <span id="done-count">0</span> Feito
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div id="progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-700 ease-out"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- FILTERS & SEARCH -->
+        <div class="sticky-header bg-slate-50/90 backdrop-blur-md py-4 space-y-3">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                <input type="text" id="search-input" placeholder="Pesquisar assunto (ex: Nefro, Linfoma...)" 
+                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium">
+            </div>
+            
+            <div id="filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <!-- Buttons JS -->
+            </div>
+        </div>
+
+        <!-- LIST CONTAINER -->
+        <div id="checklist-container" class="space-y-10 mt-4">
+            <!-- Content JS -->
+        </div>
+
+        <!-- FOOTER / RESET -->
+        <div class="mt-16 text-center border-t border-slate-200 pt-8">
+            <button onclick="resetAll()" class="inline-flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-600 bg-red-50 px-5 py-2.5 rounded-xl transition-all">
+                <i data-lucide="refresh-ccw" class="w-3 h-3"></i>
+                Resetar todo o progresso
+            </button>
+            <div class="mt-6 flex justify-center gap-4 text-slate-300">
+                <i data-lucide="database" class="w-5 h-5"></i>
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                <i data-lucide="smartphone" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subjects = [
+            { id: 'all', name: 'Todos', color: 'bg-slate-100 text-slate-800' },
+            { id: 'asa2', name: 'ASA 2', color: 'bg-blue-100 text-blue-800' },
+            { id: 'asa3', name: 'ASA 3', color: 'bg-green-100 text-green-800' },
+            { id: 'asa4', name: 'ASA 4', color: 'bg-orange-100 text-orange-800' },
+            { id: 'uped', name: 'UPED', color: 'bg-purple-100 text-purple-800' },
+            { id: 'epidemio', name: 'Epidemio', color: 'bg-yellow-100 text-yellow-800' },
+            { id: 'pato-img', name: 'Pato/Img', color: 'bg-cyan-100 text-cyan-800' },
+            { id: 'dpp', name: 'DPP 2', color: 'bg-pink-100 text-pink-800' }
+        ];
+
+        const checklistData = [
+            { id: 1, date: '02/03', month: 'Março', subject: 'asa3', title: 'Apresentação + Introdução à Epidemiologia' },
+            { id: 2, date: '02/03', month: 'Março', subject: 'asa4', title: 'Diabetes Melito: Classificação e Diagnóstico' },
+            { id: 3, date: '02/03', month: 'Março', subject: 'asa2', title: 'Nefro: Introdução / DRC' },
+            { id: 4, date: '03/03', month: 'Março', subject: 'uped', title: 'Semiologia Pediátrica na Urgência' },
+            { id: 5, date: '03/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Abdome Agudo' },
+            { id: 6, date: '03/03', month: 'Março', subject: 'asa3', title: 'Gastro: Hemorragia Digestiva' },
+            { id: 7, date: '04/03', month: 'Março', subject: 'pato-img', title: 'Imagem: TC e RM do Abdome' },
+            { id: 8, date: '05/03', month: 'Março', subject: 'dpp', title: 'DPP: Comunicação Clínica Parte 1' },
+            { id: 9, date: '05/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Neoplasias Uroteliais' },
+            { id: 10, date: '09/03', month: 'Março', subject: 'asa3', title: 'Indicadores Básicos de Saúde' },
+            { id: 11, date: '09/03', month: 'Março', subject: 'asa4', title: 'Hemato: Anemias Carenciais' },
+            { id: 12, date: '09/03', month: 'Março', subject: 'asa2', title: 'Nefro: Diálise na DRC' },
+            { id: 13, date: '10/03', month: 'Março', subject: 'uped', title: 'PCR em Pediatria' },
+            { id: 14, date: '10/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Tto Hemorragia Digestiva' },
+            { id: 15, date: '10/03', month: 'Março', subject: 'asa3', title: 'Gastro: Doenças Esofágicas' },
+            { id: 16, date: '11/03', month: 'Março', subject: 'pato-img', title: 'Imagem: Urolitíase e ITUs' },
+            { id: 17, date: '11/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Medula Óssea 1' },
+            { id: 18, date: '12/03', month: 'Março', subject: 'dpp', title: 'DPP: Comunicação Clínica Parte 2' },
+            { id: 19, date: '12/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Renal' },
+            { id: 20, date: '13/03', month: 'Março', subject: 'asa2', title: 'Uro: Urgências Urológicas Clínicas' },
+            { id: 21, date: '16/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Hérnias Parede Abdominal' },
+            { id: 22, date: '16/03', month: 'Março', subject: 'asa4', title: 'Endo: Complicações Agudas do DM' },
+            { id: 23, date: '16/03', month: 'Março', subject: 'asa2', title: 'Nefro: Transplante Renal' },
+            { id: 24, date: '17/03', month: 'Março', subject: 'uped', title: 'Intoxicações Exógenas' },
+            { id: 25, date: '17/03', month: 'Março', subject: 'asa3', title: 'Gastro: Gastrite e Câncer Gástrico' },
+            { id: 26, date: '17/03', month: 'Março', subject: 'asa4', title: 'Hemato: Anemias Hemolíticas' },
+            { id: 27, date: '18/03', month: 'Março', subject: 'pato-img', title: 'Imagem: Radiologia Fígado/Vias Biliares' },
+            { id: 28, date: '19/03', month: 'Março', subject: 'dpp', title: 'DPP: Notícias Difíceis' },
+            { id: 29, date: '19/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Gastro/Úlcera' },
+            { id: 30, date: '20/03', month: 'Março', subject: 'asa2', title: 'Uro: Neoplasias Uroteliais' },
+            // ABRIL
+            { id: 48, date: '06/04', month: 'Abril', subject: 'asa2', title: 'Nefro: Distúrbios Acidobásicos' },
+            { id: 49, date: '07/04', month: 'Abril', subject: 'uped', title: 'Choque em Pediatria' },
+            { id: 50, date: '07/04', month: 'Abril', subject: 'epidemio', title: 'Desenhos de Estudo 1' },
+            { id: 51, date: '07/04', month: 'Abril', subject: 'asa3', title: 'Gastro: DII (D. Inflamatória Intestinal)' },
+            { id: 56, date: '13/04', month: 'Abril', subject: 'asa4', title: 'Endo: Hipo e Hipertireoidismo' },
+            { id: 60, date: '14/04', month: 'Abril', subject: 'asa4', title: 'Hemato: Aplasia e Mielodisplasia' },
+            { id: 66, date: '20/04', month: 'Abril', subject: 'asa2', title: 'Nefro: IRA (Injúria Renal Aguda)' },
+            { id: 74, date: '27/04', month: 'Abril', subject: 'asa4', title: 'Hemato: Linfoma' },
+            // MAIO
+            { id: 82, date: '04/05', month: 'Maio', subject: 'asa2', title: 'Rim e Doenças Sistêmicas 1' },
+            { id: 89, date: '11/05', month: 'Maio', subject: 'asa4', title: 'Endo: Hipogonadismo Masculino' },
+            { id: 94, date: '12/05', month: 'Maio', subject: 'asa4', title: 'Hemato: Leucemias Agudas' },
+            { id: 100, date: '18/05', month: 'Maio', subject: 'asa2', title: 'Nefro: Infecção do Trato Urinário' },
+            { id: 109, date: '25/05', month: 'Maio', subject: 'asa4', title: 'Endo: Cushing e Adrenal' },
+            { id: 113, date: '26/05', month: 'Maio', subject: 'asa4', title: 'Hemato: Mieloma Múltiplo' },
+            // JUNHO
+            { id: 118, date: '01/06', month: 'Junho', subject: 'asa4', title: 'Endo: Paratireoides' },
+            { id: 121, date: '02/06', month: 'Junho', subject: 'asa4', title: 'Hemato: Púrpura' },
+            { id: 125, date: '08/06', month: 'Junho', subject: 'asa2', title: 'Nefro: Hipertensão Secundária' }
+        ];
+
+        // status: 0 (vazio), 1 (fazendo), 2 (feito)
+        let statusMap = JSON.parse(localStorage.getItem('m6_ufpe_status_map')) || {};
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        function renderFilters() {
+            const container = document.getElementById('filter-container');
+            container.innerHTML = subjects.map(s => `
+                <button onclick="setFilter('${s.id}')" 
+                    class="px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all whitespace-nowrap ${currentFilter === s.id ? s.color + ' ring-2 ring-blue-500 ring-offset-2' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}">
+                    ${s.name}
+                </button>
+            `).join('');
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklist-container');
+            const filtered = checklistData.filter(item => {
+                const matchSubj = currentFilter === 'all' || item.subject === currentFilter;
+                const matchSearch = item.title.toLowerCase().includes(currentSearch.toLowerCase());
+                return matchSubj && matchSearch;
+            });
+
+            const months = [...new Set(filtered.map(i => i.month))];
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100 text-slate-400 font-bold">Nenhum assunto encontrado.</div>';
+                return;
+            }
+
+            container.innerHTML = months.map(month => `
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">${month}</h2>
+                        <div class="h-px bg-slate-200 w-full"></div>
+                    </div>
+                    <div class="grid gap-4">
+                        ${filtered.filter(i => i.month === month).map(item => {
+                            const status = statusMap[item.id] || 0;
+                            const subjInfo = subjects.find(s => s.id === item.subject);
+                            
+                            let statusClass = '';
+                            let icon = '<div class="w-8 h-8 border-2 border-slate-200 rounded-full group-hover:border-blue-400 transition-colors"></div>';
+                            let titleClass = 'text-slate-800';
+
+                            if (status === 1) {
+                                statusClass = 'status-doing shadow-amber-100 shadow-md';
+                                icon = '<div class="bg-amber-500 rounded-full p-1.5 text-white scale-110 shadow-lg shadow-amber-200"><i data-lucide="play" class="w-5 h-5 fill-current"></i></div>';
+                            } else if (status === 2) {
+                                statusClass = 'status-done';
+                                icon = '<div class="bg-green-500 rounded-full p-1 text-white scale-110 shadow-lg shadow-green-200"><i data-lucide="check" class="w-6 h-6"></i></div>';
+                                titleClass = 'text-done';
+                            }
+
+                            return `
+                                <div onclick="toggleStatus(${item.id})" 
+                                    class="group relative flex items-center gap-5 p-5 bg-white border rounded-2xl cursor-pointer transition-all hover:border-blue-300 hover:shadow-xl hover:shadow-slate-200/50 ${statusClass} border-slate-200">
+                                    <div class="shrink-0 flex items-center justify-center w-8">
+                                        ${icon}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded border ${subjInfo.color}">${subjInfo.name}</span>
+                                            <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                                <i data-lucide="calendar" class="w-3 h-3"></i> ${item.date}
+                                            </span>
+                                        </div>
+                                        <h3 class="font-bold text-base leading-snug transition-all ${titleClass}">${item.title}</h3>
+                                    </div>
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </section>
+            `).join('');
+            
+            lucide.createIcons();
+            updateProgress();
+        }
+
+        function toggleStatus(id) {
+            let current = statusMap[id] || 0;
+            let next = (current + 1) % 3; // Ciclo 0 -> 1 -> 2 -> 0
+            
+            if (next === 0) {
+                delete statusMap[id];
+            } else {
+                statusMap[id] = next;
+            }
+            
+            localStorage.setItem('m6_ufpe_status_map', JSON.stringify(statusMap));
+            renderChecklist();
+        }
+
+        function updateProgress() {
+            const total = checklistData.length;
+            const entries = Object.entries(statusMap);
+            const done = entries.filter(([id, status]) => status === 2).length;
+            const doing = entries.filter(([id, status]) => status === 1).length;
+            
+            const percent = Math.round((done / total) * 100);
+            
+            document.getElementById('progress-percent').innerText = percent + '%';
+            document.getElementById('done-count').innerText = done;
+            document.getElementById('doing-count').innerText = doing;
+            document.getElementById('progress-bar').style.width = percent + '%';
+        }
+
+        function setFilter(id) {
+            currentFilter = id;
+            renderFilters();
+            renderChecklist();
+        }
+
+        function resetAll() {
+            if (confirm('Atenção: Você perderá todo o histórico de estudos salvo. Deseja mesmo resetar?')) {
+                statusMap = {};
+                localStorage.removeItem('m6_ufpe_status_map');
+                renderChecklist();
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            renderChecklist();
+        });
+
+        // Init
+        renderFilters();
+        renderChecklist();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
