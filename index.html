@@ -3,47 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma M6 - UFPE</title>
+    <title>Cronograma M6 Integral - UFPE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Estados das linhas */
-        .status-doing { background-color: #fffbeb; border-color: #fde68a; }
-        .status-done { background-color: #f0fdf4; border-color: #bbf7d0; opacity: 0.8; }
-        
+        .status-doing { background-color: #fffbeb; border-color: #fde68a; border-width: 2px; }
+        .status-done { background-color: #f0fdf4; border-color: #bbf7d0; opacity: 0.75; }
         .text-done { text-decoration: line-through; color: #94a3b8; }
-        .sticky-header { position: sticky; top: 0; z-index: 50; }
         
-        /* Esconder scrollbar mas manter funcionalidade */
+        .sticky-header { position: sticky; top: 0; z-index: 50; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-12 text-slate-900">
 
     <div class="max-w-3xl mx-auto px-4 pt-8">
         
-        <!-- HEADER & PROGRESS -->
+        <!-- CABEÇALHO DE PROGRESSO -->
         <header class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-6">
             <div class="bg-slate-900 p-6 text-white text-center">
-                <h1 class="text-2xl font-extrabold tracking-tight">M6 UFPE - Turma 155</h1>
-                <p class="text-slate-400 text-sm mt-1">Checklist de Teóricas • Osler Sync</p>
+                <h1 class="text-2xl font-extrabold tracking-tight">M6 UFPE - Cronograma Integral</h1>
+                <p class="text-slate-400 text-sm mt-1">Sincronizado com LocalStorage • Turma 155</p>
             </div>
             <div class="p-6">
                 <div class="flex justify-between items-end mb-3">
                     <div>
-                        <span id="progress-percent" class="text-4xl font-black text-blue-600">0%</span>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Geral Concluído</p>
+                        <div class="flex items-baseline gap-2">
+                            <span id="progress-percent" class="text-4xl font-black text-blue-600">0%</span>
+                            <span id="progress-count" class="text-sm font-bold text-slate-400">0/0</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conclusão Total</p>
                     </div>
                     <div class="text-right space-y-1">
                         <div class="flex items-center justify-end gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
-                            <i data-lucide="clock" class="w-3 h-3"></i> <span id="doing-count">0</span> Fazendo
+                            <i data-lucide="clock" class="w-3 h-3"></i> <span id="doing-count">0</span> No Forno
                         </div>
                         <div class="flex items-center justify-end gap-2 text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded-md border border-green-100">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> <span id="done-count">0</span> Feito
+                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> <span id="done-count">0</span> Finalizados
                         </div>
                     </div>
                 </div>
@@ -53,105 +52,199 @@
             </div>
         </header>
 
-        <!-- FILTERS & SEARCH -->
+        <!-- BUSCA E FILTROS -->
         <div class="sticky-header bg-slate-50/90 backdrop-blur-md py-4 space-y-3">
             <div class="relative">
                 <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
-                <input type="text" id="search-input" placeholder="Pesquisar assunto (ex: Nefro, Linfoma...)" 
-                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium">
+                <input type="text" id="search-input" placeholder="Pesquisar por assunto ou professor..." 
+                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm font-medium transition-all">
             </div>
             
             <div id="filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <!-- Buttons JS -->
+                <!-- Botões gerados via JS -->
             </div>
         </div>
 
-        <!-- LIST CONTAINER -->
+        <!-- LISTA DE AULAS -->
         <div id="checklist-container" class="space-y-10 mt-4">
-            <!-- Content JS -->
+            <!-- Conteúdo gerado via JS -->
         </div>
 
-        <!-- FOOTER / RESET -->
+        <!-- RODAPÉ -->
         <div class="mt-16 text-center border-t border-slate-200 pt-8">
             <button onclick="resetAll()" class="inline-flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-600 bg-red-50 px-5 py-2.5 rounded-xl transition-all">
                 <i data-lucide="refresh-ccw" class="w-3 h-3"></i>
-                Resetar todo o progresso
+                Limpar todos os dados salvos
             </button>
-            <div class="mt-6 flex justify-center gap-4 text-slate-300">
-                <i data-lucide="database" class="w-5 h-5"></i>
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-                <i data-lucide="smartphone" class="w-5 h-5"></i>
-            </div>
         </div>
     </div>
 
     <script>
         const subjects = [
             { id: 'all', name: 'Todos', color: 'bg-slate-100 text-slate-800' },
-            { id: 'asa2', name: 'ASA 2', color: 'bg-blue-100 text-blue-800' },
-            { id: 'asa3', name: 'ASA 3', color: 'bg-green-100 text-green-800' },
-            { id: 'asa4', name: 'ASA 4', color: 'bg-orange-100 text-orange-800' },
-            { id: 'uped', name: 'UPED', color: 'bg-purple-100 text-purple-800' },
+            { id: 'asa2', name: 'ASA 2 (Nefro/Uro)', color: 'bg-blue-100 text-blue-800' },
+            { id: 'asa3', name: 'ASA 3 (Gastro/Cirurg)', color: 'bg-green-100 text-green-800' },
+            { id: 'asa4', name: 'ASA 4 (Endo/Hemato)', color: 'bg-orange-100 text-orange-800' },
+            { id: 'uped', name: 'UPED (Pedi)', color: 'bg-purple-100 text-purple-800' },
             { id: 'epidemio', name: 'Epidemio', color: 'bg-yellow-100 text-yellow-800' },
-            { id: 'pato-img', name: 'Pato/Img', color: 'bg-cyan-100 text-cyan-800' },
+            { id: 'pato-img', name: 'Pato/Imagem', color: 'bg-cyan-100 text-cyan-800' },
             { id: 'dpp', name: 'DPP 2', color: 'bg-pink-100 text-pink-800' }
         ];
 
         const checklistData = [
-            { id: 1, date: '02/03', month: 'Março', subject: 'asa3', title: 'Apresentação + Introdução à Epidemiologia' },
-            { id: 2, date: '02/03', month: 'Março', subject: 'asa4', title: 'Diabetes Melito: Classificação e Diagnóstico' },
-            { id: 3, date: '02/03', month: 'Março', subject: 'asa2', title: 'Nefro: Introdução / DRC' },
-            { id: 4, date: '03/03', month: 'Março', subject: 'uped', title: 'Semiologia Pediátrica na Urgência' },
-            { id: 5, date: '03/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Abdome Agudo' },
-            { id: 6, date: '03/03', month: 'Março', subject: 'asa3', title: 'Gastro: Hemorragia Digestiva' },
-            { id: 7, date: '04/03', month: 'Março', subject: 'pato-img', title: 'Imagem: TC e RM do Abdome' },
-            { id: 8, date: '05/03', month: 'Março', subject: 'dpp', title: 'DPP: Comunicação Clínica Parte 1' },
-            { id: 9, date: '05/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Neoplasias Uroteliais' },
-            { id: 10, date: '09/03', month: 'Março', subject: 'asa3', title: 'Indicadores Básicos de Saúde' },
-            { id: 11, date: '09/03', month: 'Março', subject: 'asa4', title: 'Hemato: Anemias Carenciais' },
-            { id: 12, date: '09/03', month: 'Março', subject: 'asa2', title: 'Nefro: Diálise na DRC' },
-            { id: 13, date: '10/03', month: 'Março', subject: 'uped', title: 'PCR em Pediatria' },
-            { id: 14, date: '10/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Tto Hemorragia Digestiva' },
-            { id: 15, date: '10/03', month: 'Março', subject: 'asa3', title: 'Gastro: Doenças Esofágicas' },
-            { id: 16, date: '11/03', month: 'Março', subject: 'pato-img', title: 'Imagem: Urolitíase e ITUs' },
-            { id: 17, date: '11/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Medula Óssea 1' },
-            { id: 18, date: '12/03', month: 'Março', subject: 'dpp', title: 'DPP: Comunicação Clínica Parte 2' },
-            { id: 19, date: '12/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Renal' },
-            { id: 20, date: '13/03', month: 'Março', subject: 'asa2', title: 'Uro: Urgências Urológicas Clínicas' },
-            { id: 21, date: '16/03', month: 'Março', subject: 'asa3', title: 'Cirurgia: Hérnias Parede Abdominal' },
-            { id: 22, date: '16/03', month: 'Março', subject: 'asa4', title: 'Endo: Complicações Agudas do DM' },
-            { id: 23, date: '16/03', month: 'Março', subject: 'asa2', title: 'Nefro: Transplante Renal' },
-            { id: 24, date: '17/03', month: 'Março', subject: 'uped', title: 'Intoxicações Exógenas' },
-            { id: 25, date: '17/03', month: 'Março', subject: 'asa3', title: 'Gastro: Gastrite e Câncer Gástrico' },
-            { id: 26, date: '17/03', month: 'Março', subject: 'asa4', title: 'Hemato: Anemias Hemolíticas' },
-            { id: 27, date: '18/03', month: 'Março', subject: 'pato-img', title: 'Imagem: Radiologia Fígado/Vias Biliares' },
-            { id: 28, date: '19/03', month: 'Março', subject: 'dpp', title: 'DPP: Notícias Difíceis' },
-            { id: 29, date: '19/03', month: 'Março', subject: 'pato-img', title: 'Patologia: Gastro/Úlcera' },
-            { id: 30, date: '20/03', month: 'Março', subject: 'asa2', title: 'Uro: Neoplasias Uroteliais' },
-            // ABRIL
-            { id: 48, date: '06/04', month: 'Abril', subject: 'asa2', title: 'Nefro: Distúrbios Acidobásicos' },
-            { id: 49, date: '07/04', month: 'Abril', subject: 'uped', title: 'Choque em Pediatria' },
-            { id: 50, date: '07/04', month: 'Abril', subject: 'epidemio', title: 'Desenhos de Estudo 1' },
-            { id: 51, date: '07/04', month: 'Abril', subject: 'asa3', title: 'Gastro: DII (D. Inflamatória Intestinal)' },
-            { id: 56, date: '13/04', month: 'Abril', subject: 'asa4', title: 'Endo: Hipo e Hipertireoidismo' },
-            { id: 60, date: '14/04', month: 'Abril', subject: 'asa4', title: 'Hemato: Aplasia e Mielodisplasia' },
-            { id: 66, date: '20/04', month: 'Abril', subject: 'asa2', title: 'Nefro: IRA (Injúria Renal Aguda)' },
-            { id: 74, date: '27/04', month: 'Abril', subject: 'asa4', title: 'Hemato: Linfoma' },
-            // MAIO
-            { id: 82, date: '04/05', month: 'Maio', subject: 'asa2', title: 'Rim e Doenças Sistêmicas 1' },
-            { id: 89, date: '11/05', month: 'Maio', subject: 'asa4', title: 'Endo: Hipogonadismo Masculino' },
-            { id: 94, date: '12/05', month: 'Maio', subject: 'asa4', title: 'Hemato: Leucemias Agudas' },
-            { id: 100, date: '18/05', month: 'Maio', subject: 'asa2', title: 'Nefro: Infecção do Trato Urinário' },
-            { id: 109, date: '25/05', month: 'Maio', subject: 'asa4', title: 'Endo: Cushing e Adrenal' },
-            { id: 113, date: '26/05', month: 'Maio', subject: 'asa4', title: 'Hemato: Mieloma Múltiplo' },
-            // JUNHO
-            { id: 118, date: '01/06', month: 'Junho', subject: 'asa4', title: 'Endo: Paratireoides' },
-            { id: 121, date: '02/06', month: 'Junho', subject: 'asa4', title: 'Hemato: Púrpura' },
-            { id: 125, date: '08/06', month: 'Junho', subject: 'asa2', title: 'Nefro: Hipertensão Secundária' }
+            // SEMANA 01
+            { id: 1, week: 1, date: '02/03', month: 'Março', subject: 'asa3', title: 'ASA 3: Apresentação da disciplina + Intro Epidemiologia' },
+            { id: 2, week: 1, date: '02/03', month: 'Março', subject: 'asa4', title: 'ASA 4: Hematopoiese e Investigação de espleno e linfonodomegalias' },
+            { id: 3, week: 1, date: '02/03', month: 'Março', subject: 'asa2', title: 'ASA 2: Nefrologia - Introdução/Doença Renal Crônica (DRC)' },
+            { id: 4, week: 1, date: '03/03', month: 'Março', subject: 'uped', title: 'UPED: Semiologia Pediátrica na Urgência' },
+            { id: 5, week: 1, date: '03/03', month: 'Março', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Abdome Agudo' },
+            { id: 6, week: 1, date: '03/03', month: 'Março', subject: 'asa3', title: 'ASA 3: GASTRO - Hemorragia Digestiva' },
+            { id: 7, week: 1, date: '04/03', month: 'Março', subject: 'pato-img', title: 'IMAGEM: Introdução à TC e RM do abdome' },
+            { id: 8, week: 1, date: '05/03', month: 'Março', subject: 'dpp', title: 'DPP 2: Comunicação Clínica Parte 1' },
+            { id: 9, week: 1, date: '05/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Neoplasias uroteliais' },
+            // SEMANA 02
+            { id: 10, week: 2, date: '09/03', month: 'Março', subject: 'epidemio', title: 'EPIDEMIO: Indicadores Básicos para a Saúde' },
+            { id: 11, week: 2, date: '09/03', month: 'Março', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Tratamento Cirúrgico da Hemorragia Digestiva' },
+            { id: 12, week: 2, date: '09/03', month: 'Março', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Complicações crônicas microvasculares do DM' },
+            { id: 13, week: 2, date: '10/03', month: 'Março', subject: 'uped', title: 'UPED: PCR (Parada Cardiorrespiratória)' },
+            { id: 14, week: 2, date: '10/03', month: 'Março', subject: 'asa3', title: 'ASA 3: GASTRO - Doenças esofágicas' },
+            { id: 15, week: 2, date: '10/03', month: 'Março', subject: 'asa4', title: 'ASA 4: HEMATO - Anemias Carenciais (Ferropriva e Megaloblástica)' },
+            { id: 16, week: 2, date: '10/03', month: 'Março', subject: 'asa2', title: 'ASA 2: NEFRO - Diálise na DRC' },
+            { id: 17, week: 2, date: '11/03', month: 'Março', subject: 'pato-img', title: 'IMAGEM: Urolitíase e infecções trato urinário' },
+            { id: 18, week: 2, date: '11/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Patologia da Medula Óssea 1' },
+            { id: 19, week: 2, date: '12/03', month: 'Março', subject: 'dpp', title: 'DPP 2: Comunicação Clínica Parte 2' },
+            { id: 20, week: 2, date: '12/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Patologia Renal' },
+            { id: 21, week: 2, date: '13/03', month: 'Março', subject: 'asa2', title: 'ASA 2: UROLOGIA - Urgências urológicas clínicas' },
+            // SEMANA 03
+            { id: 22, week: 3, date: '16/03', month: 'Março', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Hérnias da Parede Abdominal' },
+            { id: 23, week: 3, date: '16/03', month: 'Março', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Complicações agudas do DM' },
+            { id: 24, week: 3, date: '16/03', month: 'Março', subject: 'asa2', title: 'ASA 2: NEFRO - Transplante Renal' },
+            { id: 25, week: 3, date: '17/03', month: 'Março', subject: 'uped', title: 'UPED: Intoxicações Exógenas' },
+            { id: 26, week: 3, date: '17/03', month: 'Março', subject: 'asa3', title: 'ASA 3: GASTRO - Gastrite e Câncer Gástrico' },
+            { id: 27, week: 3, date: '17/03', month: 'Março', subject: 'asa4', title: 'ASA 4: HEMATO - Anemias hemolíticas hereditárias' },
+            { id: 28, week: 3, date: '18/03', month: 'Março', subject: 'pato-img', title: 'IMAGEM: Radiologia do Fígado, Pâncreas, Vesícula e Vias Biliares' },
+            { id: 29, week: 3, date: '19/03', month: 'Março', subject: 'dpp', title: 'DPP 2: Comunicação de Notícias Difíceis' },
+            { id: 30, week: 3, date: '19/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Patologia do Esôfago, Gastrite e Úlcera Gástrica' },
+            { id: 31, week: 3, date: '20/03', month: 'Março', subject: 'asa2', title: 'ASA 2: UROLOGIA - Neoplasias Uroteliais' },
+            // SEMANA 04
+            { id: 32, week: 4, date: '23/03', month: 'Março', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Hérnias da Parede Abdominal (Continuação)' },
+            { id: 33, week: 4, date: '23/03', month: 'Março', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Tratamento do DM 2' },
+            { id: 34, week: 4, date: '23/03', month: 'Março', subject: 'asa2', title: 'ASA 2: NEFRO - Glomerulopatias primárias' },
+            { id: 35, week: 4, date: '24/03', month: 'Março', subject: 'uped', title: 'UPED: Acidentes na infância 1' },
+            { id: 36, week: 4, date: '24/03', month: 'Março', subject: 'epidemio', title: 'EPIDEMIO: Vigilância do óbito e Preenchimento da D.O.' },
+            { id: 37, week: 4, date: '24/03', month: 'Março', subject: 'asa3', title: 'ASA 3: GASTRO - Câncer do Tubo Digestivo' },
+            { id: 38, week: 4, date: '24/03', month: 'Março', subject: 'asa4', title: 'ASA 4: HEMATO - Leucemias Crônicas' },
+            { id: 39, week: 4, date: '25/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Histologia e IHQ dos Linfomas 1' },
+            { id: 40, week: 4, date: '26/03', month: 'Março', subject: 'dpp', title: 'DPP 2: Reações ao Adoecer' },
+            { id: 41, week: 4, date: '26/03', month: 'Março', subject: 'pato-img', title: 'PATOLOGIA: Tumores da próstata' },
+            { id: 42, week: 4, date: '27/03', month: 'Março', subject: 'asa2', title: 'ASA 2: UROLOGIA - Urgências urológicas traumáticas' },
+            // SEMANA 05
+            { id: 43, week: 5, date: '30/03', month: 'Março', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Doenças Anorretais' },
+            { id: 44, week: 5, date: '30/03', month: 'Março', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Dislipidemias e SOP' },
+            { id: 45, week: 5, date: '30/03', month: 'Março', subject: 'asa2', title: 'ASA 2: NEFRO - Litíase renal' },
+            { id: 46, week: 5, date: '31/03', month: 'Março', subject: 'uped', title: 'UPED: Acidentes da Infância 2' },
+            { id: 47, week: 5, date: '31/03', month: 'Março', subject: 'asa3', title: 'ASA 3: GASTRO - Doenças Funcionais e Dispépticas' },
+            { id: 48, week: 5, date: '01/04', month: 'Abril', subject: 'pato-img', title: 'PATOLOGIA: Patologia das Neoplasias do Trato GI' },
+            { id: 49, week: 5, date: '02/04', month: 'Abril', subject: 'dpp', title: 'DPP 2: O Médico na Relação Médico-Paciente' },
+            // SEMANA 06
+            { id: 50, week: 6, date: '06/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: NEFRO - Distúrbios acidobásicos' },
+            { id: 51, week: 6, date: '07/04', month: 'Abril', subject: 'uped', title: 'UPED: Choque' },
+            { id: 52, week: 6, date: '07/04', month: 'Abril', subject: 'epidemio', title: 'EPIDEMIO: Desenhos de estudo 1 - Bases da Pesquisa Epidemiológica' },
+            { id: 53, week: 6, date: '07/04', month: 'Abril', subject: 'asa3', title: 'ASA 3: GASTRO - Doença Inflamatória Intestinal' },
+            { id: 54, week: 6, date: '08/04', month: 'Abril', subject: 'pato-img', title: 'IMAGEM: Cintilografia do Sistema Gastrointestinal' },
+            { id: 55, week: 6, date: '09/04', month: 'Abril', subject: 'dpp', title: 'DPP 2: A Relação Transferencial' },
+            { id: 56, week: 6, date: '09/04', month: 'Abril', subject: 'pato-img', title: 'PATOLOGIA: Tumores da próstata (Repetição/Continuação)' },
+            { id: 57, week: 6, date: '10/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: UROLOGIA - Litíase Urinária' },
+            // SEMANA 07
+            { id: 58, week: 7, date: '13/04', month: 'Abril', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Tratamento Cirúrgico do Câncer Colorretal' },
+            { id: 59, week: 7, date: '13/04', month: 'Abril', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Hipotireoidismo e Hipertireoidismo' },
+            { id: 60, week: 7, date: '14/04', month: 'Abril', subject: 'uped', title: 'UPED: Diarréia Aguda e Desidratação' },
+            { id: 61, week: 7, date: '14/04', month: 'Abril', subject: 'epidemio', title: 'EPIDEMIO: Desenho de estudo 2 - Estudo Ecológico' },
+            { id: 62, week: 7, date: '14/04', month: 'Abril', subject: 'asa3', title: 'ASA 3: GASTRO - Doenças Pancreáticas' },
+            { id: 63, week: 7, date: '14/04', month: 'Abril', subject: 'asa4', title: 'ASA 4: HEMATO - Insuficiência medular e síndrome mielodisplásica' },
+            { id: 64, week: 7, date: '15/04', month: 'Abril', subject: 'pato-img', title: 'IMAGEM: Medicina Nuclear na Nefrologia, Tireoide e Paratireoides' },
+            { id: 65, week: 7, date: '16/04', month: 'Abril', subject: 'dpp', title: 'DPP 2: Placebo, Iatrogenia e Benefícios do Adoecer' },
+            { id: 66, week: 7, date: '16/04', month: 'Abril', subject: 'pato-img', title: 'PATOLOGIA: Patologia da tireoide e da DII' },
+            { id: 67, week: 7, date: '17/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: UROLOGIA - Neoplasia da próstata' },
+            // SEMANA 08
+            { id: 68, week: 8, date: '20/04', month: 'Abril', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Nódulos tireoidianos e Câncer de Tireoide' },
+            { id: 69, week: 8, date: '20/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: NEFRO - Injúria Renal Aguda (IRA)' },
+            { id: 70, week: 8, date: '22/04', month: 'Abril', subject: 'epidemio', title: 'EPIDEMIO: Desenho de estudo 3 - Estudo Longitudinal ou de Coorte' },
+            { id: 71, week: 8, date: '22/04', month: 'Abril', subject: 'asa3', title: 'ASA 3: GASTRO - Diarreia Aguda e Crônica' },
+            { id: 72, week: 8, date: '23/04', month: 'Abril', subject: 'dpp', title: 'DPP 2: Psicossomática, Dor Crônica, Somatização e Simulação' },
+            { id: 73, week: 8, date: '23/04', month: 'Abril', subject: 'pato-img', title: 'PATOLOGIA: Tumores de pênis' },
+            { id: 74, week: 8, date: '24/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: UROLOGIA - HPB e Uropatia obstrutiva' },
+            // SEMANA 09
+            { id: 75, week: 9, date: '27/04', month: 'Abril', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Tratamento Cirúrgico da Pancreatite e do Câncer de Pâncreas' },
+            { id: 76, week: 9, date: '27/04', month: 'Abril', subject: 'asa2', title: 'ASA 2: NEFRO - Tratamento da IRA' },
+            { id: 77, week: 9, date: '27/04', month: 'Abril', subject: 'asa4', title: 'ASA 4: HEMATO - Linfoma' },
+            { id: 78, week: 9, date: '28/04', month: 'Abril', subject: 'uped', title: 'UPED: Politraumatismo' },
+            { id: 79, week: 9, date: '28/04', month: 'Abril', subject: 'epidemio', title: 'EPIDEMIO: Desenho de estudo 4 - Estudos de Intervenção' },
+            { id: 80, week: 9, date: '29/04', month: 'Abril', subject: 'pato-img', title: 'IMAGEM: Doença da Tireoide, Paratireoide e Adrenais' },
+            { id: 81, week: 9, date: '30/04', month: 'Abril', subject: 'dpp', title: 'DPP 2: Pacientes Agudos e Crônicos, Cronicidade Psicológica' },
+            { id: 82, week: 9, date: '30/04', month: 'Abril', subject: 'pato-img', title: 'PATOLOGIA: Neoplasias do testículo' },
+            // SEMANA 10
+            { id: 83, week: 10, date: '04/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Doença Litiásica Biliar e suas Complicações' },
+            { id: 84, week: 10, date: '04/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Obesidade - diagnóstico e tratamento' },
+            { id: 85, week: 10, date: '04/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: NEFRO - Rim e doenças sistêmicas 1 (Diabetes, Lupus)' },
+            { id: 86, week: 10, date: '05/05', month: 'Maio', subject: 'uped', title: 'UPED: BRUE' },
+            { id: 87, week: 10, date: '05/05', month: 'Maio', subject: 'epidemio', title: 'EPIDEMIO: Desenho de estudo 5 - Estudos de Caso-controle' },
+            { id: 88, week: 10, date: '05/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: HEMATO - Transplante da medula óssea' },
+            { id: 89, week: 10, date: '07/05', month: 'Maio', subject: 'dpp', title: 'DPP 2: Cirurgia, Anestesia, Cirurgias Mutilantes' },
+            { id: 90, week: 10, date: '07/05', month: 'Maio', subject: 'pato-img', title: 'PATOLOGIA: Patologia da Esquistossomose e dos Tumores Hepáticos' },
+            { id: 91, week: 10, date: '08/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: UROLOGIA - Neoplasias do Pênis' },
+            // SEMANA 11
+            { id: 92, week: 11, date: '11/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Hipogonadismo masculino' },
+            { id: 93, week: 11, date: '11/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: NEFRO - Rim e doenças sistêmicas 2 (HAS, Vasculites)' },
+            { id: 94, week: 11, date: '12/05', month: 'Maio', subject: 'uped', title: 'UPED: Anafilaxia' },
+            { id: 95, week: 11, date: '12/05', month: 'Maio', subject: 'epidemio', title: 'EPIDEMIO: Desenhos de estudo 6 - Estudo de Validação' },
+            { id: 96, week: 11, date: '12/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: GASTRO - Esquistossomose' },
+            { id: 97, week: 11, date: '12/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: HEMATO - Leucemias Agudas' },
+            { id: 98, week: 11, date: '13/05', month: 'Maio', subject: 'pato-img', title: 'IMAGEM: Lesões renais císticas e sólidas' },
+            { id: 99, week: 11, date: '13/05', month: 'Maio', subject: 'pato-img', title: 'PATOLOGIA: Histologia e IMQ dos Linfomas 2' },
+            { id: 100, week: 11, date: '15/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: UROLOGIA - Câncer de Testículo' },
+            // SEMANA 12
+            { id: 101, week: 12, date: '18/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Tratamento Cirúrgico do Câncer Hepático, Vesícula e Vias Biliares' },
+            { id: 102, week: 12, date: '18/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Hiperprolactinemia e Tumores hipofisários' },
+            { id: 103, week: 12, date: '18/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: NEFRO - Infecção do trato urinário' },
+            { id: 104, week: 12, date: '19/05', month: 'Maio', subject: 'uped', title: 'UPED: Crise Asmática' },
+            { id: 105, week: 12, date: '19/05', month: 'Maio', subject: 'epidemio', title: 'EPIDEMIO: Erros e Viéses em estudos epidemiológicos' },
+            { id: 106, week: 12, date: '19/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: GASTRO - Hipertensão Portal' },
+            { id: 107, week: 12, date: '19/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: HEMATO - Hemoterapia e reações transfusionais' },
+            { id: 108, week: 12, date: '20/05', month: 'Maio', subject: 'pato-img', title: 'IMAGEM: PET-CT nos linfomas e mielomas' },
+            { id: 109, week: 12, date: '21/05', month: 'Maio', subject: 'pato-img', title: 'PATOLOGIA: Neoplasias do rim' },
+            { id: 110, week: 12, date: '22/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: UROLOGIA - Bexiga Neurogênica' },
+            // SEMANA 13
+            { id: 111, week: 13, date: '25/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: CIR ABDOMINAL - Tratamento Cirúrgico da Obesidade' },
+            { id: 112, week: 13, date: '25/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Síndrome de Cushing e Insuficiência Adrenal' },
+            { id: 113, week: 13, date: '25/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: NEFRO - Distúrbios hidroeletrolíticos' },
+            { id: 114, week: 13, date: '26/05', month: 'Maio', subject: 'uped', title: 'UPED: Cetoacidose Diabética' },
+            { id: 115, week: 13, date: '26/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: GASTRO - Cirrose Hepática' },
+            { id: 116, week: 13, date: '26/05', month: 'Maio', subject: 'asa4', title: 'ASA 4: HEMATO - Mieloma Múltiplo' },
+            { id: 117, week: 13, date: '27/05', month: 'Maio', subject: 'pato-img', title: 'IMAGEM: Medicina nuclear no câncer de Próstata' },
+            { id: 118, week: 13, date: '28/05', month: 'Maio', subject: 'pato-img', title: 'PATOLOGIA: Patologia da Adrenal' },
+            { id: 119, week: 13, date: '29/05', month: 'Maio', subject: 'asa2', title: 'ASA 2: UROLOGIA - Incontinência Urinária' },
+            { id: 120, week: 13, date: '29/05', month: 'Maio', subject: 'asa3', title: 'ASA 3: GASTRO - Complicações da Cirrose' },
+            // SEMANA 14
+            { id: 121, week: 14, date: '01/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Hiperparatireoidismo e Hipoparatireoidismo' },
+            { id: 122, week: 14, date: '01/06', month: 'Junho', subject: 'asa2', title: 'ASA 2: NEFRO - Doenças císticas / Nefrite Intersticial' },
+            { id: 123, week: 14, date: '02/06', month: 'Junho', subject: 'uped', title: 'UPED: Acidentes com animais peçonhentos' },
+            { id: 124, week: 14, date: '02/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: HEMATO - Paciente que sangra 1 - Púrpura' },
+            { id: 125, week: 14, date: '03/06', month: 'Junho', subject: 'pato-img', title: 'PATOLOGIA: Patologia das Hepatites e da Cirrose Hepática' },
+            { id: 126, week: 14, date: '05/06', month: 'Junho', subject: 'asa2', title: 'ASA 2: UROLOGIA - Disfunção Erétil' },
+            // SEMANA 15
+            { id: 127, week: 15, date: '08/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: ENDOCRINO - Deficiência de vitamina D e Osteoporose' },
+            { id: 128, week: 15, date: '08/06', month: 'Junho', subject: 'asa2', title: 'ASA 2: NEFRO - Hipertensão Secundária' },
+            { id: 129, week: 15, date: '09/06', month: 'Junho', subject: 'uped', title: 'UPED: Crises Epilépticas' },
+            { id: 130, week: 15, date: '09/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: HEMATO - Coagulopatia Hereditária' },
+            { id: 131, week: 15, date: '10/06', month: 'Junho', subject: 'pato-img', title: 'IMAGEM: Sessão de Casos clínicos' },
+            { id: 132, week: 15, date: '12/06', month: 'Junho', subject: 'asa2', title: 'ASA 2: UROLOGIA - Câncer de Rim' },
+            // SEMANA 16+
+            { id: 133, week: 16, date: '16/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: HEMATO - Coagulopatia adquirida' },
+            { id: 134, week: 17, date: '22/06', month: 'Junho', subject: 'asa4', title: 'ASA 4: HEMATO - Anemia hemolítica / Esferocitose / Deficiência de G6PD' }
         ];
 
-        // status: 0 (vazio), 1 (fazendo), 2 (feito)
-        let statusMap = JSON.parse(localStorage.getItem('m6_ufpe_status_map')) || {};
+        let statusMap = JSON.parse(localStorage.getItem('m6_ufpe_v4_status')) || {};
         let currentFilter = 'all';
         let currentSearch = '';
 
@@ -159,7 +252,7 @@
             const container = document.getElementById('filter-container');
             container.innerHTML = subjects.map(s => `
                 <button onclick="setFilter('${s.id}')" 
-                    class="px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all whitespace-nowrap ${currentFilter === s.id ? s.color + ' ring-2 ring-blue-500 ring-offset-2' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}">
+                    class="px-4 py-2.5 rounded-2xl text-[11px] font-bold border transition-all whitespace-nowrap shadow-sm ${currentFilter === s.id ? s.color + ' ring-2 ring-blue-500 ring-offset-2 scale-105' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}">
                     ${s.name}
                 </button>
             `).join('');
@@ -176,14 +269,18 @@
             const months = [...new Set(filtered.map(i => i.month))];
             
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100 text-slate-400 font-bold">Nenhum assunto encontrado.</div>';
+                container.innerHTML = `
+                    <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                        <p class="text-slate-400 font-bold">Nenhuma aula encontrada.</p>
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = months.map(month => `
                 <section>
                     <div class="flex items-center gap-3 mb-6">
-                        <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">${month}</h2>
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">${month}</h2>
                         <div class="h-px bg-slate-200 w-full"></div>
                     </div>
                     <div class="grid gap-4">
@@ -192,35 +289,36 @@
                             const subjInfo = subjects.find(s => s.id === item.subject);
                             
                             let statusClass = '';
-                            let icon = '<div class="w-8 h-8 border-2 border-slate-200 rounded-full group-hover:border-blue-400 transition-colors"></div>';
+                            let icon = '<div class="w-8 h-8 border-2 border-slate-200 rounded-full"></div>';
                             let titleClass = 'text-slate-800';
 
                             if (status === 1) {
-                                statusClass = 'status-doing shadow-amber-100 shadow-md';
-                                icon = '<div class="bg-amber-500 rounded-full p-1.5 text-white scale-110 shadow-lg shadow-amber-200"><i data-lucide="play" class="w-5 h-5 fill-current"></i></div>';
+                                statusClass = 'status-doing shadow-amber-50';
+                                icon = '<div class="bg-amber-500 rounded-full p-2 text-white shadow-lg animate-pulse"><i data-lucide="play" class="w-4 h-4 fill-current"></i></div>';
                             } else if (status === 2) {
                                 statusClass = 'status-done';
-                                icon = '<div class="bg-green-500 rounded-full p-1 text-white scale-110 shadow-lg shadow-green-200"><i data-lucide="check" class="w-6 h-6"></i></div>';
-                                titleClass = 'text-done';
+                                icon = '<div class="bg-green-500 rounded-full p-1.5 text-white shadow-md"><i data-lucide="check" class="w-5 h-5 stroke-[3]"></i></div>';
+                                titleClass = 'text-done font-medium';
                             }
 
                             return `
                                 <div onclick="toggleStatus(${item.id})" 
-                                    class="group relative flex items-center gap-5 p-5 bg-white border rounded-2xl cursor-pointer transition-all hover:border-blue-300 hover:shadow-xl hover:shadow-slate-200/50 ${statusClass} border-slate-200">
+                                    class="group relative flex items-center gap-5 p-5 bg-white border rounded-3xl cursor-pointer transition-all active:scale-95 hover:border-blue-300 hover:shadow-lg ${statusClass} border-slate-200">
                                     <div class="shrink-0 flex items-center justify-center w-8">
                                         ${icon}
                                     </div>
                                     <div class="flex-1">
-                                        <div class="flex items-center gap-2 mb-1.5">
-                                            <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded border ${subjInfo.color}">${subjInfo.name}</span>
-                                            <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-md border ${subjInfo.color}">${subjInfo.name}</span>
+                                            <span class="text-[9px] font-bold text-slate-400 flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md">
                                                 <i data-lucide="calendar" class="w-3 h-3"></i> ${item.date}
                                             </span>
+                                            <span class="text-[9px] font-bold text-slate-300 uppercase">Semana ${item.week}</span>
                                         </div>
-                                        <h3 class="font-bold text-base leading-snug transition-all ${titleClass}">${item.title}</h3>
+                                        <h3 class="font-bold text-sm md:text-base leading-snug tracking-tight ${titleClass}">${item.title}</h3>
                                     </div>
                                     <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
                                     </div>
                                 </div>
                             `;
@@ -235,7 +333,7 @@
 
         function toggleStatus(id) {
             let current = statusMap[id] || 0;
-            let next = (current + 1) % 3; // Ciclo 0 -> 1 -> 2 -> 0
+            let next = (current + 1) % 3; 
             
             if (next === 0) {
                 delete statusMap[id];
@@ -243,22 +341,30 @@
                 statusMap[id] = next;
             }
             
-            localStorage.setItem('m6_ufpe_status_map', JSON.stringify(statusMap));
+            localStorage.setItem('m6_ufpe_v4_status', JSON.stringify(statusMap));
             renderChecklist();
         }
 
         function updateProgress() {
             const total = checklistData.length;
-            const entries = Object.entries(statusMap);
-            const done = entries.filter(([id, status]) => status === 2).length;
-            const doing = entries.filter(([id, status]) => status === 1).length;
+            const entries = Object.values(statusMap);
+            const done = entries.filter(s => s === 2).length;
+            const doing = entries.filter(s => s === 1).length;
             
             const percent = Math.round((done / total) * 100);
             
-            document.getElementById('progress-percent').innerText = percent + '%';
-            document.getElementById('done-count').innerText = done;
-            document.getElementById('doing-count').innerText = doing;
-            document.getElementById('progress-bar').style.width = percent + '%';
+            // Garantir que os elementos existam antes de setar
+            const elPercent = document.getElementById('progress-percent');
+            const elDone = document.getElementById('done-count');
+            const elDoing = document.getElementById('doing-count');
+            const elBar = document.getElementById('progress-bar');
+            const elCount = document.getElementById('progress-count');
+
+            if(elPercent) elPercent.innerText = percent + '%';
+            if(elDone) elDone.innerText = done;
+            if(elDoing) elDoing.innerText = doing;
+            if(elBar) elBar.style.width = percent + '%';
+            if(elCount) elCount.innerText = `${done} / ${total}`;
         }
 
         function setFilter(id) {
@@ -270,7 +376,7 @@
         function resetAll() {
             if (confirm('Atenção: Você perderá todo o histórico de estudos salvo. Deseja mesmo resetar?')) {
                 statusMap = {};
-                localStorage.removeItem('m6_ufpe_status_map');
+                localStorage.removeItem('m6_ufpe_v4_status');
                 renderChecklist();
             }
         }
@@ -280,7 +386,7 @@
             renderChecklist();
         });
 
-        // Init
+        // Inicialização
         renderFilters();
         renderChecklist();
         lucide.createIcons();
